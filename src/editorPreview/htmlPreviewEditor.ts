@@ -31,6 +31,7 @@ export class HtmlPreviewEditorProvider implements vscode.CustomReadonlyEditorPro
 			enableScripts: true,
 			localResourceRoots: [
 				vscode.Uri.joinPath(this._extensionUri, 'media'),
+				// Allow loading resources from the file's directory and parents
 				vscode.Uri.file('/'),
 			],
 		};
@@ -45,14 +46,42 @@ export class HtmlPreviewEditorProvider implements vscode.CustomReadonlyEditorPro
 
 		// Inject a <base> tag so relative links resolve correctly
 		const baseTag = `<base href="${basePath}/">`;
+		const zoomScript = `<script>
+(function() {
+	let zoom = 1;
+	document.addEventListener('keydown', function(e) {
+		if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
+			e.preventDefault();
+			zoom = Math.min(zoom + 0.1, 3);
+			document.body.style.zoom = zoom;
+		} else if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+			e.preventDefault();
+			zoom = Math.max(zoom - 0.1, 0.3);
+			document.body.style.zoom = zoom;
+		} else if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+			e.preventDefault();
+			zoom = 1;
+			document.body.style.zoom = zoom;
+		}
+	});
+	document.addEventListener('wheel', function(e) {
+		if (e.ctrlKey || e.metaKey) {
+			e.preventDefault();
+			zoom += e.deltaY > 0 ? -0.05 : 0.05;
+			zoom = Math.max(0.3, Math.min(3, zoom));
+			document.body.style.zoom = zoom;
+		}
+	}, { passive: false });
+})();
+</script>`;
 		let finalHtml: string;
 
 		if (htmlContent.includes('<head>')) {
-			finalHtml = htmlContent.replace('<head>', `<head>${baseTag}`);
+			finalHtml = htmlContent.replace('<head>', `<head>${baseTag}${zoomScript}`);
 		} else if (htmlContent.includes('<html>')) {
-			finalHtml = htmlContent.replace('<html>', `<html><head>${baseTag}</head>`);
+			finalHtml = htmlContent.replace('<html>', `<html><head>${baseTag}${zoomScript}</head>`);
 		} else {
-			finalHtml = `<head>${baseTag}</head>${htmlContent}`;
+			finalHtml = `<head>${baseTag}${zoomScript}</head>${htmlContent}`;
 		}
 
 		webviewPanel.webview.html = finalHtml;
@@ -72,11 +101,11 @@ export class HtmlPreviewEditorProvider implements vscode.CustomReadonlyEditorPro
 					const html = Buffer.from(content).toString('utf8');
 					let updated: string;
 					if (html.includes('<head>')) {
-						updated = html.replace('<head>', `<head>${baseTag}`);
+						updated = html.replace('<head>', `<head>${baseTag}${zoomScript}`);
 					} else if (html.includes('<html>')) {
-						updated = html.replace('<html>', `<html><head>${baseTag}</head>`);
+						updated = html.replace('<html>', `<html><head>${baseTag}${zoomScript}</head>`);
 					} else {
-						updated = `<head>${baseTag}</head>${html}`;
+						updated = `<head>${baseTag}${zoomScript}</head>${html}`;
 					}
 					webviewPanel.webview.html = updated;
 				}
