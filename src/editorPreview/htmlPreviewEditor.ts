@@ -29,11 +29,18 @@ export class HtmlPreviewEditorProvider implements vscode.CustomReadonlyEditorPro
 	): Promise<void> {
 		webviewPanel.webview.options = {
 			enableScripts: true,
+			enableForms: true,
 			localResourceRoots: [
 				vscode.Uri.joinPath(this._extensionUri, 'media'),
 				// Allow loading resources from the file's directory and parents
 				vscode.Uri.file('/'),
 			],
+		};
+
+		// Enable the built-in find widget for this webview
+		(webviewPanel as any).options = {
+			...(webviewPanel as any).options,
+			enableFindWidget: true,
 		};
 
 		// Read the HTML file content

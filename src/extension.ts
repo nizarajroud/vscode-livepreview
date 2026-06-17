@@ -30,7 +30,10 @@ export function activate(context: vscode.ExtensionContext): void {
 			HtmlPreviewEditorProvider.viewType,
 			htmlPreviewProvider,
 			{
-				webviewOptions: { retainContextWhenHidden: true },
+				webviewOptions: {
+					retainContextWhenHidden: true,
+					enableFindWidget: true,
+				},
 				supportsMultipleEditorsPerDocument: false,
 			}
 		)
