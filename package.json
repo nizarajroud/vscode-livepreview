@@ -38,7 +38,8 @@
   ],
   "activationEvents": [
     "onWebviewPanel:browserPreview",
-    "onTaskType:Live Preview"
+    "onTaskType:Live Preview",
+    "onCustomEditor:livePreview.htmlPreview"
   ],
   "l10n": "./l10n",
   "main": "./out/extension.js",
@@ -297,6 +298,18 @@
             "description": "%tasks.workspacePathDesc%"
           }
         }
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "livePreview.htmlPreview",
+        "displayName": "HTML Live Preview",
+        "selector": [
+          {
+            "filenamePattern": "*.html"
+          }
+        ],
+        "priority": "default"
       }
     ]
   },

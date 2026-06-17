@@ -14,6 +14,7 @@ import {
 	SettingUtil,
 } from './utils/settingsUtil';
 import { IOpenFileOptions, Manager } from './manager';
+import { HtmlPreviewEditorProvider } from './editorPreview/htmlPreviewEditor';
 
 let reporter: TelemetryReporter;
 let serverPreview: Manager;
@@ -21,6 +22,19 @@ let serverPreview: Manager;
 export function activate(context: vscode.ExtensionContext): void {
 	const extPackageJSON = context.extension.packageJSON;
 	reporter = new TelemetryReporter(extPackageJSON.aiKey);
+
+	// Register the Custom Editor for HTML files (double-click = rendered preview)
+	const htmlPreviewProvider = new HtmlPreviewEditorProvider(context.extensionUri);
+	context.subscriptions.push(
+		vscode.window.registerCustomEditorProvider(
+			HtmlPreviewEditorProvider.viewType,
+			htmlPreviewProvider,
+			{
+				webviewOptions: { retainContextWhenHidden: true },
+				supportsMultipleEditorsPerDocument: false,
+			}
+		)
+	);
 
 	serverPreview = new Manager(
 		context.extensionUri,
